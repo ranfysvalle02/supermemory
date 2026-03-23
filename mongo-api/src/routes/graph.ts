@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import { requireAuth } from "../middleware"
-import { DocumentModel } from "../models/Document"
+import { DocumentModel } from "../models/document"
 import type { AppEnv } from "../types"
 
 const app = new Hono<AppEnv>()

@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { requireAuth } from "../middleware"
-import { DocumentModel } from "../models/Document"
-import { SpaceModel } from "../models/Space"
+import { DocumentModel } from "../models/document"
+import { SpaceModel } from "../models/space"
 import OpenAI from "openai"
 import type { AppEnv } from "../types"
 

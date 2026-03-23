@@ -1,8 +1,8 @@
 import { Hono } from "hono"
 import { auth } from "../auth"
-import { DocumentModel } from "../models/Document"
-import { ChunkModel } from "../models/Chunk"
-import { SpaceModel } from "../models/Space"
+import { DocumentModel } from "../models/document"
+import { ChunkModel } from "../models/chunk"
+import { SpaceModel } from "../models/space"
 import { nanoid } from "nanoid"
 
 const DEMO_EMAIL = "demo@supermemory.local"
