@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+**/.open-next
+**/.turbo
+**/.git
+**/dist
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Not needed for the web build (mongo-api has its own Docker context)
+mongo-api/

@@ -1,0 +1,67 @@
+# Full-stack local dev: MongoDB Atlas Local + mongo-api + supermemory web
+#
+# Usage:
+#   echo "OPENAI_API_KEY=sk-..." > .env   (optional, for embeddings)
+#   docker compose up --build
+#
+# Once running, open the demo login link — it creates a user, seeds
+# sample data, and drops you straight into the app:
+#
+#   >>> http://localhost:3100/demo-login <<<
+#
+#   Web UI:  http://localhost:3000
+#   API:     http://localhost:3100
+#   MongoDB: mongodb://localhost:27017
+#
+# Wipe everything:  docker compose down -v
+
+services:
+  mongodb:
+    image: mongodb/mongodb-atlas-local:8.0.0
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-api/init:/docker-entrypoint-initdb.d
+      - db:/data/db
+      - configdb:/data/configdb
+      - mongot:/data/mongot
+    environment:
+      - MONGOT_LOG_FILE=/dev/stderr
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/runner", "healthcheck"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+
+  mongo-api:
+    build: ./mongo-api
+    ports:
+      - "3100:3100"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/supermemory?directConnection=true
+      - BETTER_AUTH_SECRET=local-dev-secret-change-in-prod
+      - BETTER_AUTH_URL=http://localhost:3100
+      - CORS_ORIGIN=http://localhost:3000
+      - PORT=3100
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:3100
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo-api
+
+volumes:
+  db:
+  configdb:
+  mongot:

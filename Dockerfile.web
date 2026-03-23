@@ -1,0 +1,27 @@
+FROM oven/bun:1
+
+WORKDIR /app
+
+# Copy the full monorepo (workspace resolution needs the structure intact).
+# .dockerignore keeps node_modules, .next, .git, etc. out of context.
+COPY . .
+
+RUN bun install
+
+# NEXT_PUBLIC_* vars are inlined at build time into the client JS bundle.
+# http://localhost:3100 is the host-exposed mongo-api port so the browser
+# (running on the host) can reach the API.
+# Note: SSR requests from inside this container also use this URL; they may
+# fail because "localhost" inside the container != host localhost. This is
+# fine for a demo — client-side auth and data fetching handle everything.
+ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:3100
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN cd apps/web && bun run build
+
+ENV NODE_ENV=production
+EXPOSE 3000
+
+WORKDIR /app/apps/web
+CMD ["bunx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]

@@ -1,0 +1,33 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-atlas-local:8.0.0
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - db:/data/db
+      - configdb:/data/configdb
+      - mongot:/data/mongot
+    environment:
+      - MONGOT_LOG_FILE=/dev/stderr
+
+  mongo-api:
+    build: .
+    ports:
+      - "3100:3100"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/supermemory?directConnection=true
+      - BETTER_AUTH_SECRET=local-dev-secret-change-in-prod
+      - BETTER_AUTH_URL=http://localhost:3100
+      - CORS_ORIGIN=http://localhost:3000
+      - PORT=3100
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  db:
+  configdb:
+  mongot:
