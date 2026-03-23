@@ -31,6 +31,11 @@ app.use(
 // Better Auth handler
 app.all("/api/auth/*", (c) => auth.handler(c.req.raw))
 
+// Document facets stub (must be before document routes to bypass auth)
+app.post("/v3/documents/documents/facets", (c) =>
+	c.json({ facets: [], total: 0 }),
+)
+
 // v3 API routes
 app.route("/v3/documents", documentRoutes)
 app.route("/v3/search", searchRoutes)
@@ -41,9 +46,9 @@ app.route("/v3/analytics", analyticsRoutes)
 app.route("/v3/container-tags", containerTagRoutes)
 app.route("/v3/graph", graphRoutes)
 app.route("/v3/space-highlights", spaceHighlightsRoutes)
-app.route("/chat/v2", chatRoutes)
+app.route("/chat", chatRoutes)
 
-// Stub endpoints
+// Stub endpoints — silence 404 noise from production-only services
 app.get("/v3/mcp/has-login", (c) => c.json({ previousLogin: false }))
 app.get("/v3/waitlist/status", (c) =>
 	c.json({
@@ -53,6 +58,22 @@ app.get("/v3/waitlist/status", (c) =>
 	}),
 )
 app.post("/v3/emails/welcome/pro", (c) => c.json({ message: "ok" }))
+
+// Autumn billing stubs
+app.post("/api/autumn/customers", (c) =>
+	c.json({ customer_id: "local-dev", name: "Local Dev" }),
+)
+app.get("/api/autumn/products", (c) => c.json([]))
+
+// PostHog analytics proxy stubs
+app.all("/orange/*", (c) => {
+	const path = c.req.path
+	if (path.endsWith(".js")) {
+		return c.body("", 200, { "Content-Type": "application/javascript" })
+	}
+	return c.json({ status: 1 })
+})
+
 
 // Demo auto-login (creates user + seeds data + redirects to web app)
 app.route("/demo-login", demoRoutes)
